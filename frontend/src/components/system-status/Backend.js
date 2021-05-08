@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 
 const BackendStatus = {
     UNKNOWN: 'We do not know if the backend is alive or not',
@@ -17,6 +17,7 @@ const Backend = () => {
             try {
                 const resp = await fetch(`${apiHost}/api/ping`)
                 const payload = await resp.json()
+                console.log('ℹ️', payload)
                 setStatus(BackendStatus.ONLINE);
             } catch (e) {
                 setStatus(BackendStatus.FAILED);

@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 
 const GeolocationStatus = {
     UNKNOWN: 'UNKNOWN',
@@ -81,7 +81,7 @@ const Geolocation = () => {
                 setGeolocationMessage('We will not be able to figure out your location. Your browser does not support providing us with your GPS coordinates.')
                 break;
             case GeolocationStatus.NO_USER_APPROVAL:
-                setGeolocationMessage('You denied our request to get your location.')
+                setGeolocationMessage('You denied our request to get your location, or your GPS is not turned on.')
                 break;
             case GeolocationStatus.NO_POSITION:
                 setGeolocationMessage('We could not lock onto your location. Maybe you are moving around? Maybe the reception is bad where you are at the moment?')
