@@ -6,7 +6,8 @@
   "author": "Mikael Svensson",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "heroku-postbuild": "cd frontend && yarn install && yarn build"
   },
   "dependencies": {
     "express": "^4.17.1"
