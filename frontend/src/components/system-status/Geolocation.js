@@ -12,6 +12,52 @@ const GeolocationStatus = {
     LOCATION_REQUEST_FAILED: 'LOCATION_REQUEST_FAILED'
 }
 
+const checkpoints = [
+    {
+        label: 'Hässelby strand',
+        latitude: 59.361081,
+        longitude: 17.832173
+    },
+    {
+        label: 'Equmenia Hässelby',
+        latitude: 59.377278,
+        longitude: 17.821176
+    },
+    {
+        label: 'Norrmalmskyrkan',
+        latitude: 59.345013,
+        longitude: 18.048704
+    },
+    {
+        label: 'Sergels torg',
+        latitude: 59.332085,
+        longitude: 18.064205
+    }
+]
+
+// Credits: https://stackoverflow.com/a/27943
+//
+// From https://nathanrooy.github.io/posts/2016-09-07/haversine-with-python/:
+//   "Much of [this algorithm's] simplicity comes from the underlying assumption that
+//   Earth is a perfect sphere (which it isn't...). Because of this, it can lead to
+//   errors of up to 0.5%."
+const coordinateDistance = (coord1, coord2) => {
+    const R = 6371; // Radius of the Earth (in km)
+    const dLat = deg2rad(coord2.latitude - coord1.latitude);
+    const dLon = deg2rad(coord2.longitude - coord1.longitude);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(coord1.latitude)) * Math.cos(deg2rad(coord2.latitude)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    ;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance (in km)
+}
+
+const deg2rad = (deg) => {
+    return deg * (Math.PI / 180)
+}
+
 const Geolocation = () => {
     const [geolocationMessage, setGeolocationMessage] = useState(null)
     const [geolocationStatus, setGeolocationStatus] = useState(GeolocationStatus.UNKNOWN)
@@ -101,6 +147,14 @@ const Geolocation = () => {
                 <p>Latitude: {latitude.toFixed(10)}</p>
                 <p>Longitude: {longitude.toFixed(10)}</p>
                 <p>Accuracy: {accuracy.toFixed(0)} meters</p>
+                {checkpoints.map(({label: checkpointLabel, latitude: checkpointLatitude, longitude: checkpointLongitude}) => (
+                    <p key={checkpointLabel}>Distance to {checkpointLabel}: {coordinateDistance({
+                        latitude, longitude
+                    }, {
+                        latitude: checkpointLatitude,
+                        longitude: checkpointLongitude
+                    }).toFixed(2)} km</p>
+                ))}
             </>)}
         </div>
     )
