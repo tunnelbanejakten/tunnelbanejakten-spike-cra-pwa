@@ -1,11 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Webcam from "react-webcam";
 
-const videoConstraints = {
-    width: 1280,
-    height: 720
-};
-
 const FacingMode = {
     SELFIE: 'user',
     REGULAR: 'environment'
@@ -18,6 +13,7 @@ const Camera = () => {
     const [capturedImageUri, setCapturedImageUri] = useState(null)
 
     const [facingMode, setFacingMode] = useState(FacingMode.SELFIE);
+    const [facingModes, setFacingModes] = useState(Object.values(FacingMode));
     const [deviceId, setDeviceId] = useState(null);
     const [devices, setDevices] = useState([]);
     const [videoSourceDimensions, setVideoSourceDimensions] = useState([1280, 720]);
@@ -27,7 +23,7 @@ const Camera = () => {
         () => {
             const [width, height] = videoSourceDimensions
             const ratio = width / height;
-            setMessage(`📐 Aspect ratio of ${width}x${height} is ${ratio.toFixed(2)}`)
+            setMessage(`📐 Aspect ratio of ${width}x${height} is ${ratio.toFixed(2)}. Facing mode is ${facingMode}.`)
             const maxSize = 400
             if (width > height) {
                 return [maxSize, maxSize / ratio]
@@ -35,7 +31,7 @@ const Camera = () => {
                 return [maxSize / ratio, maxSize]
             }
         },
-        [videoSourceDimensions, setMessage])
+        [videoSourceDimensions, setMessage, facingMode])
 
     const handleDevices = useCallback(
         mediaDevices => {
@@ -78,6 +74,9 @@ const Camera = () => {
                             <input type="radio"
                                    name="deviceId"
                                    value={device.deviceId}
+                                   onClick={() => {
+                                       setDeviceId(device.deviceId)
+                                   }}
                                    id={`device-selector-${device.deviceId}`}
                                    checked={device.deviceId === deviceId}/>
                             <label htmlFor={`device-selector-${device.deviceId}`}>{device.label}</label>
@@ -85,12 +84,12 @@ const Camera = () => {
                     ))
                 )}
                 {
-                    Object.values(FacingMode).map(mode => (
+                    facingModes.map(mode => (
                         <div key={`facingMode${mode}`}>
                             <input type="radio"
                                    name="mode"
                                    value={mode}
-                                   onChange={() => {
+                                   onClick={() => {
                                        setFacingMode(mode)
                                    }}
                                    id={`facing-mode-selector-${mode}`}
@@ -108,16 +107,20 @@ const Camera = () => {
                         mirrored={false}
                         screenshotFormat="image/jpeg"
                         videoConstraints={{
-                            ...videoConstraints,
                             width,
                             height,
-                            deviceId: deviceId,
-                            facingMode: facingMode
+                            facingMode,
+                            deviceId: deviceId
+                        }}
+                        onUserMediaError={(mediaStreamError) => {
+                            setMessage(mediaStreamError.name)
                         }}
                         onUserMedia={mediaStream => {
                             mediaStream.getVideoTracks().forEach(videoTrack => {
                                 const capabilities = videoTrack.getCapabilities();
                                 const {width, height, facingMode} = capabilities
+                                setFacingModes(facingMode)
+                                setFacingMode(facingMode && facingMode.length ? facingMode[0] : null)
                                 setVideoSourceDimensions([width.max, height.max])
                                 // console.log('getSettings', videoTrack.getSettings())
                                 // console.log('getCapabilities', capabilities)
