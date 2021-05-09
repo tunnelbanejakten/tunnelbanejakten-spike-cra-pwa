@@ -1,19 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Webcam from "react-webcam";
 
-const FacingMode = {
-    SELFIE: 'user',
-    REGULAR: 'environment'
-}
-
 const Camera = () => {
     const [enabled, setEnabled] = useState(false)
 
     const webcamRef = useRef(null);
     const [capturedImageUri, setCapturedImageUri] = useState(null)
 
-    const [facingMode, setFacingMode] = useState(FacingMode.SELFIE);
-    const [facingModes, setFacingModes] = useState(Object.values(FacingMode));
     const [deviceId, setDeviceId] = useState(null);
     const [devices, setDevices] = useState([]);
     const [videoSourceDimensions, setVideoSourceDimensions] = useState([1280, 720]);
@@ -23,7 +16,7 @@ const Camera = () => {
         () => {
             const [width, height] = videoSourceDimensions
             const ratio = width / height;
-            setMessage(`📐 Aspect ratio of ${width}x${height} is ${ratio.toFixed(2)}. Facing mode is ${facingMode}.`)
+            setMessage(`📐 Aspect ratio of ${width}x${height} is ${ratio.toFixed(2)}.`)
             const maxSize = 400
             if (width > height) {
                 return [maxSize, maxSize / ratio]
@@ -31,7 +24,7 @@ const Camera = () => {
                 return [maxSize / ratio, maxSize]
             }
         },
-        [videoSourceDimensions, setMessage, facingMode])
+        [videoSourceDimensions, setMessage])
 
     const handleDevices = useCallback(
         mediaDevices => {
@@ -60,7 +53,6 @@ const Camera = () => {
         },
         [webcamRef, setCapturedImageUri, videoSourceDimensions, setMessage]
     );
-    const [width, height] = videoSourceDimensions
     return (
         <div>
             <h1>Camera</h1>
@@ -83,21 +75,6 @@ const Camera = () => {
                         </div>
                     ))
                 )}
-                {
-                    facingModes.map(mode => (
-                        <div key={`facingMode${mode}`}>
-                            <input type="radio"
-                                   name="mode"
-                                   value={mode}
-                                   onClick={() => {
-                                       setFacingMode(mode)
-                                   }}
-                                   id={`facing-mode-selector-${mode}`}
-                                   checked={mode === facingMode}/>
-                            <label htmlFor={`facing-mode-selector-${mode}`}>{mode}</label>
-                        </div>
-                    ))
-                }
                 {deviceId && <div>
                     <Webcam
                         audio={false}
@@ -107,9 +84,6 @@ const Camera = () => {
                         mirrored={false}
                         screenshotFormat="image/jpeg"
                         videoConstraints={{
-                            width,
-                            height,
-                            facingMode,
                             deviceId: deviceId
                         }}
                         onUserMediaError={(mediaStreamError) => {
@@ -118,13 +92,13 @@ const Camera = () => {
                         onUserMedia={mediaStream => {
                             mediaStream.getVideoTracks().forEach(videoTrack => {
                                 const capabilities = videoTrack.getCapabilities();
-                                const {width, height, facingMode} = capabilities
-                                setFacingModes(facingMode)
-                                setFacingMode(facingMode && facingMode.length ? facingMode[0] : null)
-                                setVideoSourceDimensions([width.max, height.max])
-                                // console.log('getSettings', videoTrack.getSettings())
-                                // console.log('getCapabilities', capabilities)
-                                // console.log('getConstraints', videoTrack.getConstraints())
+                                const currentSettings = videoTrack.getSettings();
+                                setVideoSourceDimensions([currentSettings.width, currentSettings.height])
+                                // const {width, height} = capabilities
+                                // setVideoSourceDimensions([width.max, height.max])
+                                console.log('getSettings', currentSettings)
+                                console.log('getCapabilities', capabilities)
+                                console.log('getConstraints', videoTrack.getConstraints())
                             })
                         }}
                     />
