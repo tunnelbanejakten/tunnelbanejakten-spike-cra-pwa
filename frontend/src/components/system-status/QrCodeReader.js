@@ -20,6 +20,9 @@ const QrCodeReader = () => {
         <div>
             <h1>QR Reader</h1>
             {enabled && <>
+                <div>
+                    <button onClick={() => setEnabled(false)}>Stop</button>
+                </div>
                 <QrReader
                     showViewFinder={false}
                     delay={500}
@@ -30,10 +33,9 @@ const QrCodeReader = () => {
                     }}
                     style={{width: 300}}
                 />
-                <button onClick={() => setEnabled(false)}>Hide</button>
             </>}
             {!enabled && <>
-                <button onClick={() => setEnabled(true)}>Show</button>
+                <button onClick={() => setEnabled(true)}>Start</button>
             </>}
             <p>{result}</p>
         </div>
