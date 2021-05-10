@@ -1,6 +1,6 @@
 import './App.css';
 import SystemStatus from "./components/system-status";
-import Camera from './components/Camera'
+import Camera from './components/camera'
 
 function App() {
     return (
