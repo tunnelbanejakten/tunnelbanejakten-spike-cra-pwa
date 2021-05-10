@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Webcam from "react-webcam";
-
+import './styles.css'
 const CameraStatus = {
     UNKNOWN: 'Status of camera is unknown',
     LOADING_DEVICE_LIST: 'Loading list of cameras',
@@ -107,7 +107,11 @@ const Camera = () => {
                         </div>
                     ))
                 )}
-                {deviceId && <div>
+                {deviceId && <div style={{
+                        height: previewHeight,
+                        width: previewWidth
+                    }} className="viewfinder">
+                    <div className="border" />
                     <Webcam
                         audio={false}
                         height={previewHeight}
@@ -147,16 +151,18 @@ const Camera = () => {
                             })
                         }}
                     />
+                    <div>
+                        <button onClick={capture}>
+                            <div>📸</div>
+                        </button>
+                    </div>
                 </div>}
-                <div>
-                    <button onClick={capture}>Capture photo</button>
-                </div>
                 {capturedImageUri && <div>
                     <p>
                         Most recently captured photo:
                     </p>
                     <div>
-                        <img src={capturedImageUri} style={{width: 300, height: 'auto'}}/>
+                        <img src={capturedImageUri} style={{width: 300, height: 'auto'}} className='captured-photo'/>
                     </div>
                 </div>}
                 {message && <p>{message}</p>}
