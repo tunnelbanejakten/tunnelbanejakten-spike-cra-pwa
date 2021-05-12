@@ -29,8 +29,8 @@ const Camera = () => {
 
     const [previewWidth, previewHeight] = useMemo(
         () => {
-            setStatus(CameraStatus.RESIZING_VIDEO)
-            const [width, height] = videoDesiredDimensions
+            // setStatus(CameraStatus.RESIZING_VIDEO)
+            const [width, height] = videoActualDimensions[0] ? videoActualDimensions : videoDesiredDimensions
             const ratio = width / height;
             setMessage(`📐 Aspect ratio of ${width}x${height} is ${ratio.toFixed(2)}.`)
             const maxSize = 400
@@ -40,7 +40,7 @@ const Camera = () => {
                 return [maxSize / ratio, maxSize]
             }
         },
-        [videoDesiredDimensions, setMessage])
+        [videoDesiredDimensions, videoActualDimensions, setMessage])
 
     const handleDevices = useCallback(
         mediaDevices => {
@@ -77,6 +77,8 @@ const Camera = () => {
                 return Status.USER_INTERACTION_REQUIRED;
         }
     }, [status, capturedImageUri])
+
+    const isCameraOnline = useMemo(() => status === CameraStatus.DEVICE_STARTED, [status])
 
     useEffect(
         () => {
@@ -144,7 +146,10 @@ const Camera = () => {
                     height: previewHeight,
                     width: previewWidth
                 }} className="viewfinder">
-                    <div className="border"/>
+                    {isCameraOnline && <div className="border" style={{
+                        height: previewHeight - 20,
+                        width: previewWidth - 20
+                    }}/>}
                     <Webcam
                         audio={false}
                         height={previewHeight}
