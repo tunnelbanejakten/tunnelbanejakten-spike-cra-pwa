@@ -1,6 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Webcam from "react-webcam";
-import './styles.css'
+import './camera.css'
+import PrerequisiteStatus, {Status} from "../prerequisite-status";
+
 const CameraStatus = {
     UNKNOWN: 'Status of camera is unknown',
     LOADING_DEVICE_LIST: 'Loading list of cameras',
@@ -52,6 +54,30 @@ const Camera = () => {
         [setDevices, setStatus]
     );
 
+    const prerequisiteStatus = useMemo(() => {
+        if (capturedImageUri) {
+            return Status.SUCCESS;
+        }
+        switch (status) {
+            case CameraStatus.UNKNOWN:
+                return Status.PENDING;
+            case CameraStatus.LOADING_DEVICE_LIST:
+                return Status.PENDING;
+            case CameraStatus.DEVICE_LIST_LOADED:
+                return Status.USER_INTERACTION_REQUIRED;
+            case CameraStatus.ERROR:
+                return Status.FAILURE;
+            case CameraStatus.STARTING_DEVICE:
+                return Status.PENDING;
+            case CameraStatus.DEVICE_STARTED:
+                return Status.USER_INTERACTION_REQUIRED;
+            case CameraStatus.RESIZING_VIDEO:
+                return Status.PENDING;
+            case CameraStatus.NO_DEVICE_SELECTED:
+                return Status.USER_INTERACTION_REQUIRED;
+        }
+    }, [status, capturedImageUri])
+
     useEffect(
         () => {
             if (enabled) {
@@ -78,19 +104,26 @@ const Camera = () => {
         () => {
             const [width, height] = videoActualDimensions
             const imageSrc = webcamRef.current.getScreenshot({width, height});
-            setMessage(`📷 Captured image. Requested ${width}x${height}. Got ${imageSrc.length} bytes.`)
-            setCapturedImageUri(imageSrc)
+            if (imageSrc) {
+                setMessage(`📷 Captured photo. Requested ${width}x${height}. Got ${imageSrc.length} bytes.`)
+                setCapturedImageUri(imageSrc);
+            } else {
+                setMessage(`⚠️ Failed to capture photo.`)
+            }
         },
         [webcamRef, setCapturedImageUri, videoActualDimensions, setMessage]
     );
     const [width, height] = videoDesiredDimensions
     return (
         <div>
-            <h1>Camera</h1>
+            <PrerequisiteStatus icon='📷'
+                                label='Camera'
+                                status={prerequisiteStatus}
+                                buttonLabel={enabled ? (prerequisiteStatus === Status.SUCCESS ? 'Close' : 'Cancel') : 'Test'}
+                                onButtonClick={() => {
+                                    setEnabled(!enabled)
+                                }}/>
             {enabled && <>
-                <div>
-                    <button onClick={() => setEnabled(false)}>Stop</button>
-                </div>
                 <p>{status}</p>
                 {devices && (
                     devices.map(device => (
@@ -108,10 +141,10 @@ const Camera = () => {
                     ))
                 )}
                 {deviceId && <div style={{
-                        height: previewHeight,
-                        width: previewWidth
-                    }} className="viewfinder">
-                    <div className="border" />
+                    height: previewHeight,
+                    width: previewWidth
+                }} className="viewfinder">
+                    <div className="border"/>
                     <Webcam
                         audio={false}
                         height={previewHeight}
@@ -166,9 +199,6 @@ const Camera = () => {
                     </div>
                 </div>}
                 {message && <p>{message}</p>}
-            </>}
-            {!enabled && <>
-                <button onClick={() => setEnabled(true)}>Start</button>
             </>}
         </div>
     )

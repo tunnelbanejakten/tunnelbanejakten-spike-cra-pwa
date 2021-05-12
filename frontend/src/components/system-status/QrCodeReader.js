@@ -1,43 +1,47 @@
-import React, {useCallback, useState} from 'react'
+import React, {useCallback, useMemo, useState} from 'react'
 import QrReader from 'react-qr-reader'
+import PrerequisiteStatus, {Status} from "../prerequisite-status";
 
 const QrCodeReader = () => {
     const [result, setResult] = useState('Nothing yet')
     const [enabled, setEnabled] = useState(false)
+    const [prerequisiteStatus, setPrerequisiteStatus] = useState(Status.USER_INTERACTION_REQUIRED);
 
     const handleScan = useCallback(data => {
         if (data) {
             setResult(data);
+            setPrerequisiteStatus(Status.SUCCESS)
         }
-    }, [setResult]);
+    }, [setResult, setPrerequisiteStatus]);
 
     const handleError = useCallback(err => {
         console.error(err)
         setResult(err.message)
-    }, [setResult]);
+        setPrerequisiteStatus(Status.FAILURE)
+    }, [setResult, setPrerequisiteStatus]);
 
     return (
         <div>
-            <h1>QR Reader</h1>
+            <PrerequisiteStatus icon='📷'
+                                label='QR Code Reader'
+                                status={prerequisiteStatus}
+                                buttonLabel={enabled ? (prerequisiteStatus === Status.SUCCESS ? 'Close' : 'Cancel') : 'Test'}
+                                onButtonClick={() => {
+                                    setEnabled(!enabled)
+                                }}/>
             {enabled && <>
-                <div>
-                    <button onClick={() => setEnabled(false)}>Stop</button>
-                </div>
                 <QrReader
                     showViewFinder={false}
                     delay={500}
                     onError={handleError}
                     onScan={handleScan}
                     onLoad={() => {
-                        console.log('onLoad')
+                        setPrerequisiteStatus(Status.USER_INTERACTION_REQUIRED)
                     }}
                     style={{width: 300}}
                 />
+                <p>{result}</p>
             </>}
-            {!enabled && <>
-                <button onClick={() => setEnabled(true)}>Start</button>
-            </>}
-            <p>{result}</p>
         </div>
     )
 }

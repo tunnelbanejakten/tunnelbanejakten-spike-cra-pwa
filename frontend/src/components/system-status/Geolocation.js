@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import PrerequisiteStatus, {Status} from "../prerequisite-status";
 
 const GeolocationStatus = {
     UNKNOWN: 'UNKNOWN',
@@ -64,6 +65,8 @@ const Geolocation = () => {
     const [latitude, setLatitude] = useState(null)
     const [longitude, setLongitude] = useState(null)
     const [accuracy, setAccuracy] = useState(null)
+    const [showStatus, setShowStatus] = useState(false)
+    const [prerequisiteStatus, setPrerequisiteStatus] = useState(Status.PENDING)
 
     useEffect(() => {
         setGeolocationStatus("geolocation" in navigator
@@ -75,21 +78,27 @@ const Geolocation = () => {
     useEffect(() => {
         switch (geolocationStatus) {
             case GeolocationStatus.UNKNOWN:
+                setPrerequisiteStatus(Status.PENDING)
                 setGeolocationMessage('We do not know if we can figure out your location.')
                 break;
             case GeolocationStatus.NO_BROWSER_API:
+                setPrerequisiteStatus(Status.FAILURE)
                 setGeolocationMessage('We will not be able to figure out your location. Your browser does not support providing us with your GPS coordinates.')
                 break;
             case GeolocationStatus.NO_USER_APPROVAL:
+                setPrerequisiteStatus(Status.FAILURE)
                 setGeolocationMessage('You denied our request to get your location, or your GPS is not turned on.')
                 break;
             case GeolocationStatus.NO_POSITION:
+                setPrerequisiteStatus(Status.FAILURE)
                 setGeolocationMessage('We could not lock onto your location. Maybe you are moving around? Maybe the reception is bad where you are at the moment?')
                 break;
             case GeolocationStatus.NO_RESPONSE:
+                setPrerequisiteStatus(Status.FAILURE)
                 setGeolocationMessage('We did not get your position because the request timed out.')
                 break;
             case GeolocationStatus.BROWSER_API_AVAILABLE:
+                setPrerequisiteStatus(Status.PENDING)
                 setGeolocationMessage('Your device is figuring out your location.')
                 setGeolocationStatus(GeolocationStatus.LOCATION_REQUEST_INITIATED)
 
@@ -126,14 +135,18 @@ const Geolocation = () => {
                 })
                 break;
             case GeolocationStatus.LOCATION_REQUEST_INITIATED:
+                setPrerequisiteStatus(Status.PENDING)
                 break;
             case GeolocationStatus.LOCATION_REQUEST_SUCCEEDED:
+                setPrerequisiteStatus(Status.SUCCESS)
                 setGeolocationMessage('We have received your location.')
                 break;
             case GeolocationStatus.LOCATION_REQUEST_FAILED:
+                setPrerequisiteStatus(Status.FAILURE)
                 setGeolocationMessage('For some reason, we could not find your location.')
                 break;
             default:
+                setPrerequisiteStatus(Status.FAILURE)
                 setGeolocationMessage('Unknown status')
                 break;
         }
@@ -141,21 +154,30 @@ const Geolocation = () => {
 
     return (
         <div>
-            <h1>Geolocation</h1>
-            <p>{geolocationMessage}</p>
-            {geolocationStatus === GeolocationStatus.LOCATION_REQUEST_SUCCEEDED && (<>
-                <p>Latitude: {latitude.toFixed(10)}</p>
-                <p>Longitude: {longitude.toFixed(10)}</p>
-                <p>Accuracy: {accuracy.toFixed(0)} meters</p>
-                {checkpoints.map(({label: checkpointLabel, latitude: checkpointLatitude, longitude: checkpointLongitude}) => (
-                    <p key={checkpointLabel}>Distance to {checkpointLabel}: {coordinateDistance({
-                        latitude, longitude
-                    }, {
-                        latitude: checkpointLatitude,
-                        longitude: checkpointLongitude
-                    }).toFixed(2)} km</p>
-                ))}
-            </>)}
+            <PrerequisiteStatus icon='🧭'
+                                label='Geolocation'
+                                status={prerequisiteStatus}
+                                buttonLabel='Status'
+                                onButtonClick={() => {
+                                    setShowStatus(!showStatus)
+                                }}/>
+
+            {showStatus && <>
+                <p>{geolocationMessage}</p>
+                {geolocationStatus === GeolocationStatus.LOCATION_REQUEST_SUCCEEDED && (<>
+                    <p>Latitude: {latitude.toFixed(10)}</p>
+                    <p>Longitude: {longitude.toFixed(10)}</p>
+                    <p>Accuracy: {accuracy.toFixed(0)} meters</p>
+                    {checkpoints.map(({label: checkpointLabel, latitude: checkpointLatitude, longitude: checkpointLongitude}) => (
+                        <p key={checkpointLabel}>Distance to {checkpointLabel}: {coordinateDistance({
+                            latitude, longitude
+                        }, {
+                            latitude: checkpointLatitude,
+                            longitude: checkpointLongitude
+                        }).toFixed(2)} km</p>
+                    ))}
+                </>)}
+            </>}
         </div>
     )
 }

@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
+import PrerequisiteStatus, {Status} from "../prerequisite-status";
 
 const BackendStatus = {
     UNKNOWN: 'We do not know if the backend is alive or not',
@@ -10,6 +11,21 @@ const BackendStatus = {
 const Backend = () => {
     const apiHost = process.env.REACT_APP_API_HOST
     const [status, setStatus] = useState(BackendStatus.UNKNOWN)
+
+    const prerequisiteStatus = useMemo(() => {
+        switch (status) {
+            case BackendStatus.UNKNOWN:
+                return Status.PENDING
+            case BackendStatus.CHECKING:
+                return Status.PENDING
+            case BackendStatus.ONLINE:
+                return Status.SUCCESS
+            case BackendStatus.FAILED:
+                return Status.FAILURE
+        }
+    }, [status])
+
+    const [showStatus, setShowStatus] = useState(false)
 
     useEffect(() => {
         const pingApi = async () => {
@@ -28,10 +44,16 @@ const Backend = () => {
 
     return (
         <div>
-            <h1>API Connection</h1>
-            <p>
+            <PrerequisiteStatus icon='🌍'
+                                label='API Connection'
+                                status={prerequisiteStatus}
+                                buttonLabel='Status'
+                                onButtonClick={() => {
+                                    setShowStatus(!showStatus)
+                                }}/>
+            {showStatus && <p>
                 {status}
-            </p>
+            </p>}
         </div>
     )
 }

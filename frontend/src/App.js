@@ -1,14 +1,13 @@
+import React from 'react'
 import './App.css';
 import SystemStatus from "./components/system-status";
-import Camera from './components/camera'
 
 function App() {
     return (
         <div className="App">
-            <header className="App-header">
-                <Camera/>
+            <section>
                 <SystemStatus/>
-            </header>
+            </section>
         </div>
     );
 }
